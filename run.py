@@ -525,6 +525,24 @@ if __name__ == '__main__':
                         dest='update_processed',
                         help='update processed timestamps and other state info in records table when a record is indexed')
 
+    parser.add_argument('--classify',
+                        dest='classify',
+                        action='store_true',
+                        default=False,
+                        help='Run the classifier on the given bibcodes')
+
+    parser.add_argument('--manual',
+                        dest='manual',
+                        action='store_true',
+                        default=False,
+                        help='Allow the classifier to be run in manual mode')
+
+    parser.add_argument('--validate_classifier',
+                        dest='validate_classifier',
+                        action='store_true',
+                        default=False,
+                        help='Test data for classifier')
+
     args = parser.parse_args()
 
     if args.bibcodes:
@@ -589,6 +607,33 @@ if __name__ == '__main__':
                         # aff values omes from bib pipeline
 
                         app.request_aff_augment(bibcode)
+
+    elif args.classify:
+        if args.validate_classifier:
+            data = None
+            check_boolean = True
+        else:
+            data = None
+            check_boolean = False
+        if args.manual:
+            # if args.filename or data is not None:
+            if args.filename:
+                # filename should be checked
+                filename = args.filename
+                # import pdb;pdb.set_trace()
+                # print('classifying bibcodes from file via queue')
+                logger.info('Classifying records from file via queue')
+                # import pdb;pdb.set_trace()
+                app.request_classify(filename=filename,mode='manual',data=data,check_boolean=check_boolean)
+        else:
+            if args.filename:
+                with open(args.filename, 'r') as f:
+                    for line in f:
+                        bibcode = line.strip()
+                        # import pdb;pdb.set_trace()
+                        if bibcode:
+                            app.request_classify(bibcode=bibcode,mode='auto')
+                # app.request_classify(args.filename)
 
     elif args.rebuild_collection:
         rebuild_collection(args.solr_collection, args.batch_size)

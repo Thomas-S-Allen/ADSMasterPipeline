@@ -1,4 +1,4 @@
-adsputils==1.5.2
+git+https://github.com/Thomas-S-Allen/ADSPipelineUtils.git@master
 alembic==0.9.1
 httplib2==0.18.1
 portalocker==1.7.1

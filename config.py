@@ -10,9 +10,15 @@ SQLALCHEMY_ECHO = False
 LOGGING_LEVEL = "INFO"
 CELERY_INCLUDE = ["adsmp.tasks"]
 
-OUTPUT_CELERY_BROKER = "pyamqp://test:test@localhost:5682/test_augment_pipeline"
+OUTPUT_CELERY_BROKER = "pyamqp://test:test@localhost:5683/test_augment_pipeline"
 OUTPUT_TASKNAME = "ADSAffil.tasks.task_update_record"
 
+# For Classifier
+OUTPUT_CELERY_BROKER_CLASSIFIER = "pyamqp://test:test@localhost:5682/classifier_pipeline"
+# OUTPUT_TASKNAME_CLASSIFIER = "ClassifierPipeline.tasks.task_handle_input_from_master"
+OUTPUT_TASKNAME_CLASSIFIER = "ClassifierPipeline.tasks.task_update_record"
+
+FORWARD_MSG_DICT = [{'OUTPUT_PIPELINE': 'default', 'OUTPUT_CELERY_BROKER': 'testbroker', 'OUTPUT_TASKNAME': 'testtaskname'}, {'OUTPUT_PIPELINE': 'classifier', 'OUTPUT_CELERY_BROKER': 'testbroker2', 'OUTPUT_TASKNAME': 'testtaskname2'}]
 
 # db connection to the db instance where we should send data; if not present
 # the SOLR can still work but no metrics updates can be done

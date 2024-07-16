@@ -84,6 +84,12 @@ def task_update_record(msg):
                                         msg.toJSON(including_default_value_fields=True))
             if record:
                 logger.debug('Saved augment message: %s', msg)
+        elif type == 'classify':
+            bibcodes.append(msg.bibcode)
+            record = app.update_storage(msg.bibcode, 'classify',
+                                        msg.toJSON(including_default_value_fields=True))
+            if record:
+                logger.debug('Saved classify message: %s', msg)
 
         else:
             # here when record has a single bibcode
@@ -96,6 +102,9 @@ def task_update_record(msg):
                 # that pipeline will eventually respond with a msg to task_update_record
                 logger.debug('requesting affilation augmentation for %s', msg.bibcode)
                 app.request_aff_augment(msg.bibcode)
+                # We also want to request the classification of the document
+                logger.debug('requesting classification for %s', msg.bibcode)
+                app.request_classification(msg.bibcode)
 
     else:
         logger.error('Received a message with unclear status: %s', msg)

@@ -5,7 +5,7 @@ from past.builtins import basestring
 from adsputils import get_date
 from datetime import datetime
 from dateutil.tz import tzutc
-from sqlalchemy import Column, Integer, BigInteger, String, Text, TIMESTAMP, Boolean, DateTime
+from sqlalchemy import Column, Integer, BigInteger, String, Text, TIMESTAMP, Boolean, DateTime, ARRAY
 from sqlalchemy import types
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.types import Enum
@@ -57,6 +57,7 @@ class Records(Base):
     # currently only supported key is 'affiliations'
     #  with the value an array holding affiliation strings and '-' placeholders
     augments = Column(Text)
+    collections = Column(ARRAY(String))
 
     # when data is received we set the updated timestamp
     bib_data_updated = Column(UTCDateTime, default=None)
@@ -65,6 +66,7 @@ class Records(Base):
     fulltext_updated = Column(UTCDateTime, default=None)
     metrics_updated = Column(UTCDateTime, default=None)
     augments_updated = Column(UTCDateTime, default=None)
+    collections_updated = Column(UTCDateTime, default=None)
 
     created = Column(UTCDateTime, default=get_date)
     updated = Column(UTCDateTime, default=get_date)
