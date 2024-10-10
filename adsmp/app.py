@@ -591,16 +591,22 @@ class ADSMasterPipelineCelery(ADSCelery):
             while batch_idx < len(bibcodes):
                 bibcodes_batch = bibcodes[batch_idx:batch_idx+batch_size]
                 # import pdb; pdb.set_trace()
-                for bibcode in bibcodes_batch:
-                    if check_boolean is False:
-                        self.logger.info('preparing record for: {}'.format(bibcode))
-                        import pdb; pdb.set_trace()
-                        data = self.prepare_bibcode(bibcode)
+                for record in bibcodes_batch:
+                    # import pdb; pdb.set_trace()
+                    if record.get('title') or record.get('abstract'):
+                        data = record
                     else:
-                        data = bibcode
+                        data = self.prepare_bibcode(record)
+                    # if check_boolean is False:
+                    #     self.logger.info('preparing record for: {}'.format(bibcode))
+                    #     # import pdb; pdb.set_trace()
+                    #     data = self.prepare_bibcode(bibcode)
+                    # else:
+                    #     data = bibcode
                     if data and data.get('title'):
                         # import pdb; pdb.set_trace()
                         batch_list.append(data)
+                # import pdb; pdb.set_trace()
                 if len(batch_list) > 0:
                     # message = ClassifyRequestRecordList(*batch_list) # may not need to be different protobuff
                     message = ClassifyRequestRecordList() # may not need to be different protobuff
@@ -613,7 +619,7 @@ class ADSMasterPipelineCelery(ADSCelery):
                     output_taskname=self._config.get('OUTPUT_TASKNAME_CLASSIFIER')
                     output_broker=self._config.get('OUTPUT_CELERY_BROKER_CLASSIFIER')
                     # import pdb; pdb.set_trace()
-                    print('check boolean',check_boolean)
+                    # print('check boolean',check_boolean)
                     # import pdb; pdb.set_trace()
                     if check_boolean is True:
                         # Save message to file 

@@ -623,8 +623,9 @@ if __name__ == '__main__':
                 # import pdb;pdb.set_trace()
                 # print('classifying bibcodes from file via queue')
                 logger.info('Classifying records from file via queue')
+                keywords_dictionary = {"filename": filename, "mode": "manual", "data": data, "check_boolean": check_boolean}
                 # import pdb;pdb.set_trace()
-                app.request_classify(filename=filename,mode='manual',data=data,check_boolean=check_boolean)
+                # app.request_classify(filename=filename,mode='manual',data=data,check_boolean=check_boolean)
         else:
             if args.filename:
                 with open(args.filename, 'r') as f:
@@ -632,7 +633,10 @@ if __name__ == '__main__':
                         bibcode = line.strip()
                         # import pdb;pdb.set_trace()
                         if bibcode:
-                            app.request_classify(bibcode=bibcode,mode='auto')
+                            keywords_dictionary = {"bibcode": bibcode, "mode": "auto"}
+                            # app.request_classify(bibcode=bibcode,mode='auto')
+
+        app.request_classify(**keywords_dictionary)
                 # app.request_classify(args.filename)
 
     elif args.rebuild_collection:
