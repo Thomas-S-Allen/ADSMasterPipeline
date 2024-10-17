@@ -542,7 +542,17 @@ class ADSMasterPipelineCelery(ADSCelery):
     def request_classify(self, bibcode=None,filename=None,mode='auto', batch_size=500, data=None,check_boolean=False):
         """ send classifier request for bibcode to classifier pipeline
 
-        set data parameter to provide test data"""
+        set data parameter to provide test data
+
+        Parameters
+        ----------
+        bibcode = reference ID for record (Needs to include SciXID)
+        filename : filename of input file with list of records to classify 
+        mode : 'auto' (default) assumes single record input from master, 'amnual' assumes multiple records input at command line
+        batch_size : size of batch for large input files
+        check_boolean :
+        
+        """
         self.logger.info('request_classify called with bibcode={}, filename={}, mode={}, batch_size={}, data={}, validate={}'.format(bibcode, filename, mode, batch_size, data, check_boolean))
 
         if not self._config.get('OUTPUT_TASKNAME_CLASSIFIER'):
@@ -552,8 +562,8 @@ class ADSMasterPipelineCelery(ADSCelery):
             self.logger.warning('request_classifier called but no classifier broker in config')
             return
 
-        print('bibcode',bibcode)
-        print('filename',filename)
+        # print('bibcode',bibcode)
+        # print('filename',filename)
         # import pdb; pdb.set_trace()
         if bibcode is not None and mode == 'auto':
             if data is None:
@@ -631,9 +641,6 @@ class ADSMasterPipelineCelery(ADSCelery):
                     else:
                         self.logger.info('Sending message for batch')
                         self.logger.info('sending message {}'.format(message))
-                        # print('Sending message for batch')
-                        # print('Sending message for batch {}'.format(batch_idx))
-                        # import pdb; pdb.set_trace()
                         self.forward_message(message, pipeline='classifier')
                         self.logger.debug('sent classifier request for batch {}'.format(batch_idx))
                 batch_idx += batch_size

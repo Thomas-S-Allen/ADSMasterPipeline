@@ -609,6 +609,8 @@ if __name__ == '__main__':
                         app.request_aff_augment(bibcode)
 
     elif args.classify:
+        print('Running Classifier')
+        # import pdb;pdb.set_trace()
         if args.validate_classifier:
             data = None
             check_boolean = True
@@ -636,6 +638,7 @@ if __name__ == '__main__':
                             keywords_dictionary = {"bibcode": bibcode, "mode": "auto"}
                             # app.request_classify(bibcode=bibcode,mode='auto')
 
+        # import pdb;pdb.set_trace()
         app.request_classify(**keywords_dictionary)
                 # app.request_classify(args.filename)
 
