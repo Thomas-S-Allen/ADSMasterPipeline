@@ -29,6 +29,7 @@ from google.protobuf.json_format import MessageToJson
 #                        level=config.get('LOGGING_LEVEL', 'INFO'),
 #                        attach_stdout=config.get('LOG_STDOUT', False))
 
+from SciXPipelineUtils import scix_id
 
 class ADSMasterPipelineCelery(ADSCelery):
 
@@ -86,7 +87,6 @@ class ADSMasterPipelineCelery(ADSCelery):
         empty the solr/metrics processed timestamps.
 
         returns the sql record as a json object or an error string """
-
         if not isinstance(payload, basestring):
             payload = json.dumps(payload)
 
@@ -126,16 +126,22 @@ class ADSMasterPipelineCelery(ADSCelery):
             else:
                 raise Exception('Unknown type: %s' % type)
             session.add(ChangeLog(key=bibcode, type=type, oldvalue=oldval))
-
             r.updated = now
             out = r.toJSON()
             try:
+                session.flush()
+                if not r.scix_id:
+                    r.scix_id = "scix:" + str(self.generate_scix_id(r.id))
+                    out = r.toJSON()
                 session.commit()
                 return out
             except exc.IntegrityError:
                 self.logger.exception('error in app.update_storage while updating database for bibcode {}, type {}'.format(bibcode, type))
                 session.rollback()
                 raise
+
+    def generate_scix_id(self, number):
+        return scix_id.encode(number) 
 
     def delete_by_bibcode(self, bibcode):
         with self.session_scope() as session:

@@ -5,8 +5,10 @@ import os
 import adsputils
 from adsmp import app as app_module
 from adsmp import solr_updater
+from adsmp.models import Records
 from kombu import Queue
 from adsmsg.msg import Msg
+from sqlalchemy import exc
 
 # ============================= INITIALIZATION ==================================== #
 
@@ -22,6 +24,7 @@ app.conf.CELERY_QUEUES = (
     Queue('index-solr', app.exchange, routing_key='index-solr'),
     Queue('index-metrics', app.exchange, routing_key='index-metrics'),
     Queue('index-data-links-resolver', app.exchange, routing_key='index-data-links-resolver'),
+    Queue('update-scixid', app.exchange, routing_key='update-scixid'),
 )
 
 
@@ -109,6 +112,48 @@ def task_update_record(msg):
     else:
         logger.error('Received a message with unclear status: %s', msg)
 
+@app.task(queue='update-scixid')
+def task_update_scixid(bibcodes, flag):
+    """Receives bibcodes to add scix id to the record.
+
+    @param 
+    bibcodes: single bibcode or list of bibcodes to update
+    flag: 'update' - update records to have a new scix_id if they do not already have one
+          'force' - force reset scix_id and assign new scix_ids to all bibcodes
+    """
+    if flag not in ['update', 'force']:
+        logger.error('flag can only have the values "update" or "force"')
+
+    for bibcode in bibcodes:
+        logger.debug('Updating record: %s', bibcode)
+
+        with app.session_scope() as session:
+            r = session.query(Records).filter_by(bibcode=bibcode).first()
+            if r is None:
+                logger.error('Bibcode %s does not exist in Records DB', bibcode)
+                return
+            if flag == 'update':
+                if not r.scix_id:
+                    r.scix_id = "scix:" + app.generate_scix_id(r.id)
+                    try:
+                        session.commit()
+                        logger.debug('Bibcode %s has been assigned a new scix id', bibcode)
+                    except exc.IntegrityError:
+                        logger.exception('error in app.update_storage while updating database for bibcode {}, type {}'.format(bibcode, type))
+                        session.rollback()
+                else:
+                    session.commit()
+                    logger.debug('Bibcode %s already has a scix id assigned', bibcode)
+                    session.rollback()
+
+            if flag == 'force':
+                r.scix_id = "scix:" + app.generate_scix_id(r.id)
+                try:
+                    session.commit()
+                    logger.debug('Bibcode %s has been assigned a new scix id', bibcode)
+                except exc.IntegrityError:
+                    logger.exception('error in app.update_storage while updating database for bibcode {}, type {}'.format(bibcode, type))
+                    session.rollback()
 
 @app.task(queue='rebuild-index')
 def task_rebuild_index(bibcodes, solr_targets=None):

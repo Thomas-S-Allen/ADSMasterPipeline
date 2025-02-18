@@ -340,6 +340,8 @@ class TestSolrUpdater(unittest.TestCase):
                 "volume",
             ],
         )
+        self.assertEqual(x["scix_id"], "scix:0000-0000-0011")
+        self.assertEqual(round(x["doctype_boost"],3),0.857)
 
         self.app.update_storage(
             "bibcode",
@@ -546,6 +548,8 @@ class TestSolrUpdater(unittest.TestCase):
                 "volume",
             ],
         )
+        self.assertEqual(round(x["doctype_boost"],3),0.857)
+
 
     def test_links_data_merge(self):
         # links_data only from bib
@@ -556,6 +560,7 @@ class TestSolrUpdater(unittest.TestCase):
         }
         solr_record = solr_updater.transform_json_record(db_record)
         self.assertEqual(db_record["bib_data"]["links_data"], solr_record["links_data"])
+        self.assertEqual(solr_record["scix_id"], None)
         db_record = {
             "bibcode": "foo",
             "bib_data": {"links_data": ['{"url": "http://asdf"}']},
@@ -663,37 +668,37 @@ class TestSolrUpdater(unittest.TestCase):
             d["ned_object_facet_hier"],
         )
 
-        # Test simple gpn
-        nonbib = {"gpn": ["Moon/Crater/Langrenus/3273"]}
+        # Test simple planetary_feature
+        nonbib = {"planetary_feature": ["Moon/Crater/Langrenus/3273"]}
         d = solr_updater.extract_data_pipeline(nonbib, None)
-        self.assertEqual(["Moon/Crater/Langrenus"], d["gpn"])
-        self.assertEqual(["3273"], d["gpn_id"])
+        self.assertEqual(["Moon/Crater/Langrenus"], d["planetary_feature"])
+        self.assertEqual(["3273"], d["planetary_feature_id"])
         self.assertEqual(
             ["0/Moon", "1/Moon/Crater", "2/Moon/Crater/Langrenus"],
-            d["gpn_facet_hier_3level"],
+            d["planetary_feature_facet_hier_3level"],
         )
         self.assertEqual(
             ["0/Moon", "1/Moon/Crater Langrenus"],
-            d["gpn_facet_hier_2level"],
+            d["planetary_feature_facet_hier_2level"],
         )
 
-        # Test gpn with space in feature name
-        nonbib = {"gpn": ["Mars/Terra/Terra Cimmeria/5930"]}
+        # Test planetary_feature with space in feature name
+        nonbib = {"planetary_feature": ["Mars/Terra/Terra Cimmeria/5930"]}
         d = solr_updater.extract_data_pipeline(nonbib, None)
-        self.assertEqual(["Mars/Terra/Terra Cimmeria"], d["gpn"])
-        self.assertEqual(["5930"], d["gpn_id"])
+        self.assertEqual(["Mars/Terra/Terra Cimmeria"], d["planetary_feature"])
+        self.assertEqual(["5930"], d["planetary_feature_id"])
         self.assertEqual(
             ["0/Mars", "1/Mars/Terra", "2/Mars/Terra/Terra Cimmeria"],
-            d["gpn_facet_hier_3level"],
+            d["planetary_feature_facet_hier_3level"],
         )
         self.assertEqual(
             ["0/Mars", "1/Mars/Terra Cimmeria"],
-            d["gpn_facet_hier_2level"],
+            d["planetary_feature_facet_hier_2level"],
         )
 
-        # Test one bibcode with multiple gpns assigned
+        # Test one bibcode with multiple planetary_features assigned
         nonbib = {
-            "gpn": [
+            "planetary_feature": [
                 "Moon/Mare/Mare Imbrium/3678",
                 "Moon/Crater/Alder/171",
                 "Moon/Crater/Finsen/1959",
@@ -708,9 +713,9 @@ class TestSolrUpdater(unittest.TestCase):
                 "Moon/Crater/Finsen",
                 "Moon/Crater/Leibnitz",
             ],
-            d["gpn"],
+            d["planetary_feature"],
         )
-        self.assertEqual(["3678", "171", "1959", "3335"], d["gpn_id"])
+        self.assertEqual(["3678", "171", "1959", "3335"], d["planetary_feature_id"])
         self.assertEqual(
             [
                 "0/Moon",
@@ -726,7 +731,7 @@ class TestSolrUpdater(unittest.TestCase):
                 "1/Moon/Crater",
                 "2/Moon/Crater/Leibnitz",
             ],
-            d["gpn_facet_hier_3level"],
+            d["planetary_feature_facet_hier_3level"],
         )
         self.assertEqual(
             [
@@ -739,7 +744,7 @@ class TestSolrUpdater(unittest.TestCase):
                 "0/Moon",
                 "1/Moon/Crater Leibnitz",
             ],
-            d["gpn_facet_hier_2level"],
+            d["planetary_feature_facet_hier_2level"],
         )
 
         # Test uat

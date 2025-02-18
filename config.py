@@ -58,7 +58,7 @@ HAS_FIELDS = [
     "identifier",
     "institution",
     "issue",
-    "keywords",
+    "keyword",
     "orcid_other",
     "orcid_pub",
     "orcid_user",
@@ -72,3 +72,27 @@ HAS_FIELDS = [
     "uat",
     "volume",
 ]
+
+DOCTYPE_RANKING = {
+    "article": 1,
+    "eprint": 1,
+    "inproceedings": 2,
+    "inbook": 1,
+    "abstract": 4,
+    "book": 1,
+    "bookreview": 4,
+    "catalog": 2,
+    "circular": 3,
+    "erratum": 6,
+    "mastersthesis": 3,
+    "newsletter": 5,
+    "obituary": 6,
+    "phdthesis": 3,
+    "pressrelease": 7,
+    "proceedings": 3,
+    "proposal": 4,
+    "software": 2,
+    "talk": 4,
+    "techreport": 3,
+    "misc": 8
+}

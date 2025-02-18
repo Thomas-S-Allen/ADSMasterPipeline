@@ -34,10 +34,10 @@ def extract_data_pipeline(data, solrdoc):
         grant.append(grant_no)
         grant_facet_hier.extend(generate_hier_facet(agency, grant_no))
 
-    gpn = []
-    gpn_id = []
-    gpn_facet_hier_2level = []
-    gpn_facet_hier_3level = []
+    planetary_feature = []
+    planetary_feature_id = []
+    planetary_feature_facet_hier_2level = []
+    planetary_feature_facet_hier_3level = []
 
     featurelist = [
         "albedo feature",
@@ -50,14 +50,14 @@ def extract_data_pipeline(data, solrdoc):
         "satellite feature",
     ]
 
-    for x in data.get("gpn", []):
+    for x in data.get("planetary_feature", []):
         planet, feature, feature_name, id_no = x.split("/", 3)
-        gpn.append("/".join([planet, feature, feature_name]))
-        gpn_id.append(id_no)
-        gpn_facet_hier_3level.extend(generate_hier_facet(planet, feature, feature_name))
+        planetary_feature.append("/".join([planet, feature, feature_name]))
+        planetary_feature_id.append(id_no)
+        planetary_feature_facet_hier_3level.extend(generate_hier_facet(planet, feature, feature_name))
         if feature.lower() in featurelist:
             feature_name = " ".join([feature, feature_name])
-        gpn_facet_hier_2level.extend(generate_hier_facet(planet, feature_name))
+        planetary_feature_facet_hier_2level.extend(generate_hier_facet(planet, feature_name))
 
     uat = []
     uat_id = []
@@ -119,10 +119,10 @@ def extract_data_pipeline(data, solrdoc):
         data_facet=[x.split(":")[0] for x in data.get("data", [])],
         esources=data.get("esource", []),
         property=data.get("property", []),
-        gpn=gpn,
-        gpn_id=gpn_id,
-        gpn_facet_hier_2level=gpn_facet_hier_2level,
-        gpn_facet_hier_3level=gpn_facet_hier_3level,
+        planetary_feature=planetary_feature,
+        planetary_feature_id=planetary_feature_id,
+        planetary_feature_facet_hier_2level=planetary_feature_facet_hier_2level,
+        planetary_feature_facet_hier_3level=planetary_feature_facet_hier_3level,
         uat=uat,
         uat_id=uat_id,
         uat_facet_hier=uat_facet_hier,
@@ -437,7 +437,7 @@ def transform_json_record(db_record):
         "bibgroup_facet", None
     ):
         out["bibgroup_facet"] = db_record["nonbib_data"]["bibgroup_facet"]
-
+    
     # if only bib data is available, use it to compute property
     if db_record.get("nonbib_data", None) is None and db_record.get("bib_data", None):
         links_data = db_record["bib_data"].get("links_data", None)
@@ -466,6 +466,26 @@ def transform_json_record(db_record):
                         db_record["bibcode"], type(links_data), links_data
                     )
                 )
+    out["scix_id"] = None
+    if db_record.get("scix_id", None):
+        out["scix_id"] = db_record.get("scix_id")
+
+        # Compute doctype scores on the fly
+    out["doctype_boost"] = None
+
+    if config.get("DOCTYPE_RANKING", False):
+        doctype_rank = config.get("DOCTYPE_RANKING") 
+        unique_ranks = sorted(set(doctype_rank.values()))
+
+        # Map ranks to scores evenly spaced between 0 and 1 (invert: lowest rank gets the highest score)
+        rank_to_score = {rank: 1 - ( i / (len(unique_ranks) - 1)) for i, rank in enumerate(unique_ranks)}
+
+        # Assign scores to each rank
+        doctype_scores = {doctype: rank_to_score[rank] for doctype, rank in doctype_rank.items()}
+
+        if "doctype" in out.keys():
+            out["doctype_boost"] = doctype_scores.get(out["doctype"], None)
+
     if config.get("ENABLE_HAS", False):
         # Read-in names of fields to check for solr "has:" field
         hasfields = sorted(config.get("HAS_FIELDS", []))
