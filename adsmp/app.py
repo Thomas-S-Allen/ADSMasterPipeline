@@ -539,7 +539,7 @@ class ADSMasterPipelineCelery(ADSCelery):
         }
         return data
 
-    def request_classify(self, bibcode=None,filename=None,mode='auto', batch_size=500, data=None,check_boolean=False):
+    def request_classify(self, bibcode=None,scix_id = None, filename=None,mode='auto', batch_size=500, data=None,check_boolean=False):
         """ send classifier request for bibcode to classifier pipeline
 
         set data parameter to provide test data
@@ -547,6 +547,7 @@ class ADSMasterPipelineCelery(ADSCelery):
         Parameters
         ----------
         bibcode = reference ID for record (Needs to include SciXID)
+        scix_id = reference ID for record
         filename : filename of input file with list of records to classify 
         mode : 'auto' (default) assumes single record input from master, 'amnual' assumes multiple records input at command line
         batch_size : size of batch for large input files
